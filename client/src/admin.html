@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>ZenFlow 后台管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 min-h-screen font-sans flex">
+
+    <div class="w-64 bg-slate-900 text-white flex flex-col">
+        <div class="h-16 flex items-center justify-center font-bold text-xl border-b border-slate-800 tracking-wider">
+            <span class="text-yellow-500 mr-2">Zen</span>Admin
+        </div>
+        <div class="flex-1 p-4 space-y-2">
+            <div class="bg-blue-600 rounded-lg p-3 text-sm font-bold flex items-center cursor-pointer">
+                <i class="fas fa-chart-line w-6"></i> 数据看板
+            </div>
+            <div onclick="window.location.href='index.html'" class="text-slate-400 p-3 text-sm font-bold flex items-center cursor-pointer hover:bg-slate-800 rounded-lg transition">
+                <i class="fas fa-home w-6"></i> 返回前台
+            </div>
+        </div>
+        <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">v5.0 Security</div>
+    </div>
+
+    <div class="flex-1 p-8 overflow-y-auto">
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">SaaS 运营驾驶舱</h2>
+        
+        <div class="grid grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="text-slate-400 text-xs font-bold uppercase mb-1">总注册用户</div>
+                <div class="text-3xl font-bold text-blue-600" id="stat-users">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="text-slate-400 text-xs font-bold uppercase mb-1">累计合同生成</div>
+                <div class="text-3xl font-bold text-purple-600" id="stat-contracts">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <div class="text-slate-400 text-xs font-bold uppercase mb-1">API 调用次数</div>
+                <div class="text-3xl font-bold text-green-600" id="stat-api">0</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 font-bold text-slate-700">用户管理 (User Management)</div>
+            <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-slate-500 font-bold">
+                    <tr>
+                        <th class="p-4">ID</th>
+                        <th class="p-4">用户</th>
+                        <th class="p-4">公司</th>
+                        <th class="p-4">手机</th>
+                        <th class="p-4">注册时间</th>
+                        <th class="p-4 text-center">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body" class="divide-y divide-slate-100 text-slate-600"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 生产环境自动适配路径 (关键修正)
+        const API_BASE = '/api';
+        
+        const token = localStorage.getItem('zenflow_token');
+        if (!token) window.location.href = 'login.html';
+
+        async function loadData() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/dashboard`, { 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                
+                if (res.status === 401) { 
+                    alert("权限不足或登录过期"); 
+                    window.location.href = 'index.html'; 
+                    return; 
+                }
+                
+                const data = await res.json();
+                
+                // 填充统计数据
+                document.getElementById('stat-users').innerText = data.stats.user_count || 0;
+                document.getElementById('stat-contracts').innerText = data.stats.contract_count || 0;
+                document.getElementById('stat-api').innerText = data.stats.api_calls || 0;
+
+                // 渲染用户列表
+                document.getElementById('user-table-body').innerHTML = data.users.map(u => `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-4 font-mono text-xs">${u.id}</td>
+                        <td class="p-4 font-bold text-blue-600 flex items-center gap-2">
+                            <div class="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs">${u.username[0].toUpperCase()}</div>
+                            ${u.username} ${u.role === 'admin' ? '<span class="bg-yellow-100 text-yellow-700 text-[10px] px-1 rounded">ADM</span>' : ''}
+                        </td>
+                        <td class="p-4">${u.company_name || '-'}</td>
+                        <td class="p-4 font-mono">${u.phone || '-'}</td>
+                        <td class="p-4 text-slate-400 text-xs">${u.created_at}</td>
+                        <td class="p-4 text-center">
+                            ${u.role !== 'admin' ? `
+                                <button onclick="resetPass(${u.id}, '${u.username}')" class="text-blue-500 hover:underline mr-3 text-xs">重置密码</button>
+                                <button onclick="deleteUser(${u.id})" class="text-red-500 hover:text-red-700 text-xs">删除</button>
+                            ` : '<span class="text-slate-300 text-xs">不可操作</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { 
+                console.error(e); 
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('确定删除该用户？此操作不可恢复！')) return;
+            
+            await fetch(`${API_BASE}/admin/user/delete`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                body: JSON.stringify({ id }) 
+            });
+            
+            loadData(); // 刷新列表
+        }
+        
+        async function resetPass(id, name) {
+            if (!confirm(`将用户 [${name}] 的密码重置为 123456？`)) return;
+            
+            await fetch(`${API_BASE}/admin/user/reset`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                body: JSON.stringify({ id }) 
+            });
+            
+            alert('重置成功，请提醒用户尽快修改密码。');
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

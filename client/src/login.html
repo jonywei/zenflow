@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 | ZenFlow SaaS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .zen-bg { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
+    </style>
+</head>
+<body class="zen-bg min-h-screen flex items-center justify-center p-4">
+    
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-yellow-500 rounded mx-auto flex items-center justify-center text-blue-900 font-bold text-xl mb-3">
+                <i class="fas fa-calculator"></i> Z
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">ZenFlow 智能工作台</h1>
+            <p class="text-sm text-slate-400 mt-1">SaaS 企业级服务系统</p>
+        </div>
+
+        <div class="flex border-b border-slate-200 mb-6">
+            <button onclick="switchTab('login')" id="tab-login" class="flex-1 pb-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600 transition">账号登录</button>
+            <button onclick="switchTab('register')" id="tab-register" class="flex-1 pb-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition">注册新用户</button>
+        </div>
+
+        <div id="form-login" class="space-y-4">
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-1">账号</label>
+                <input type="text" id="l-user" class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none transition" placeholder="请输入账号">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-1">密码</label>
+                <input type="password" id="l-pass" class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none transition" placeholder="请输入密码">
+            </div>
+            <button onclick="doLogin()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">安全登录</button>
+            <div class="text-right">
+                <a href="#" onclick="document.getElementById('forgot-modal').classList.remove('hidden')" class="text-xs text-slate-400 hover:text-blue-500">忘记密码?</a>
+            </div>
+        </div>
+
+        <div id="form-register" class="space-y-3 hidden">
+            <input type="text" id="r-user" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none text-sm" placeholder="用户名 (登录用)">
+            <input type="password" id="r-pass" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none text-sm" placeholder="设置密码">
+            <input type="text" id="r-company" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none text-sm" placeholder="公司名称 (核心主体)">
+            <input type="text" id="r-phone" class="w-full px-4 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none text-sm" placeholder="手机号 (找回凭证)">
+            <button onclick="doRegister()" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg shadow-green-200">立即注册</button>
+        </div>
+    </div>
+
+    <div id="forgot-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm" onclick="if(event.target===this) this.classList.add('hidden')">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-80 text-center">
+            <h3 class="font-bold text-lg mb-2">重置密码</h3>
+            <p class="text-sm text-slate-500 mb-6">为了保障安全，请直接联系系统管理员进行人工重置。</p>
+            <button onclick="document.getElementById('forgot-modal').classList.add('hidden')" class="w-full bg-slate-200 text-slate-600 py-2 rounded font-bold hover:bg-slate-300">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 生产环境自动适配路径
+        const API_BASE = '/api';
+
+        function switchTab(t) {
+            const isLogin = t === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+            document.getElementById('form-register').classList.toggle('hidden', isLogin);
+            
+            document.getElementById('tab-login').className = isLogin 
+                ? 'flex-1 pb-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600 transition' 
+                : 'flex-1 pb-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition';
+            
+            document.getElementById('tab-register').className = !isLogin 
+                ? 'flex-1 pb-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600 transition' 
+                : 'flex-1 pb-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition';
+        }
+
+        async function doLogin() {
+            const u = document.getElementById('l-user').value;
+            const p = document.getElementById('l-pass').value;
+            
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                const data = await res.json();
+                
+                if (data.status === 'ok') {
+                    localStorage.setItem('zenflow_token', data.token);
+                    localStorage.setItem('zenflow_user', JSON.stringify(data.user || { username: u })); 
+                    localStorage.setItem('zenflow_role', data.role);
+                    
+                    if (data.force_change) {
+                        localStorage.setItem('force_change', 'true'); 
+                    }
+                    
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.msg);
+                }
+            } catch (e) {
+                alert('服务器连接失败');
+            }
+        }
+
+        async function doRegister() {
+            const u = document.getElementById('r-user').value;
+            const p = document.getElementById('r-pass').value;
+            const c = document.getElementById('r-company').value;
+            const ph = document.getElementById('r-phone').value;
+
+            if (!u || !p || !c || !ph) return alert("所有字段必填");
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ username: u, password: p, company_name: c, phone: ph })
+                });
+                const d = await res.json();
+                
+                if (d.status === 'ok') { 
+                    alert('注册成功，请登录'); 
+                    switchTab('login'); 
+                } else {
+                    alert(d.msg);
+                }
+            } catch (e) {
+                alert('注册失败');
+            }
+        }
+    </script>
+</body>
+</html>
