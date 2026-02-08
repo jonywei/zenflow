@@ -8,6 +8,7 @@
     <script>tailwind.config = { corePlugins: { preflight: true } }</script>
     <script src="https://unpkg.com/pinyin-pro@3.13.2/dist/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -17,19 +18,14 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; } 
         ::-webkit-scrollbar-track { background: transparent; } 
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        
         .clean-input { width: 100%; padding: 8px 10px; font-size: 0.85rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; outline: none; transition: all 0.2s; color: #334155; }
         .clean-input:hover { border-color: #cbd5e1; }
         .clean-input:focus { border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1); }
-        
         .nav-item.active { background-color: rgba(255,255,255,0.1); color: #fff; border-left: 3px solid #fbbf24; }
-        
         .tool-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem; font-weight: 700; background-color: white; border: 1px solid #e2e8f0; color: #475569; transition: all 0.2s; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
         .tool-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; color: #2563eb; }
-        
         .market-table th { background-color: #f8fafc; color: #64748b; font-size: 0.75rem; font-weight: 700; padding: 0.8rem; text-align: center; border-bottom: 1px solid #e2e8f0; }
         .market-table td { border-bottom: 1px solid #f1f5f9; padding: 0.8rem; font-size: 0.85rem; font-weight: 700; color: #334155; text-align: center; }
-        
         @media print { 
             @page { margin: 5mm; size: A4 portrait; } 
             body > *:not(#preview-modal) { display: none !important; } 
@@ -45,61 +41,31 @@
         .seal-corp-name { font-size: 10px; padding: 0 10px; } 
         .seal-corp-type { font-size: 14px; border-top: 1px solid rgba(255, 0, 0, 0.6); margin-top: 2px; }
         .seal-person { width: 45px; height: 45px; border: 3px solid rgba(255, 0, 0, 0.8); color: rgba(255, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; font-size: 16px; font-family: "SimSun"; font-weight: bold; line-height: 1.1; padding: 2px; transform: rotate(-10deg); pointer-events: none; }
-        
         .term-title { font-weight: bold; margin-top: 8px; margin-bottom: 2px; font-size: 11px; }
         .term-content { text-indent: 0; text-align: justify; line-height: 1.4; color: #333; font-size: 10px; }
         .bank-info-box { background-color: #f9fafb; padding: 5px; border: 1px dashed #cbd5e1; margin: 5px 0; font-family: "Courier New", monospace; }
-        
         .contract-table th, .contract-table td { text-align: center !important; vertical-align: middle; }
     </style>
 </head>
 <body class="bg-slate-100 h-screen flex overflow-hidden text-slate-800 font-sans">
-
     <aside class="zen-sidebar w-64 flex-shrink-0 flex flex-col transition-all duration-300 transform fixed md:relative z-50 h-full hidden md:flex" id="sidebar">
-        <div class="h-16 flex items-center px-6 border-b border-white/10">
-            <div class="w-8 h-8 bg-yellow-500 rounded flex items-center justify-center text-blue-900 font-bold mr-3"><i class="fas fa-calculator"></i></div>
-            <span class="text-white text-lg font-bold tracking-wide">ZenFlow <span class="text-xs text-yellow-400 opacity-80">SaaS</span></span>
-        </div>
+        <div class="h-16 flex items-center px-6 border-b border-white/10"><div class="w-8 h-8 bg-yellow-500 rounded flex items-center justify-center text-blue-900 font-bold mr-3"><i class="fas fa-calculator"></i></div><span class="text-white text-lg font-bold tracking-wide">ZenFlow <span class="text-xs text-yellow-400 opacity-80">SaaS</span></span></div>
         <nav class="flex-1 overflow-y-auto py-4 space-y-1">
             <a href="#" onclick="switchPage('workbench', this)" class="nav-item active flex items-center px-6 py-3 text-slate-300 hover:bg-white/5 hover:text-white transition"><i class="fas fa-home w-6 text-center mr-2"></i> <span class="font-medium text-sm">工作台</span></a>
             <a href="#" onclick="switchPage('documents', this)" class="nav-item flex items-center px-6 py-3 text-slate-300 hover:bg-white/5 hover:text-white transition"><i class="fas fa-file-invoice w-6 text-center mr-2"></i> <span class="font-medium text-sm">单据中心</span></a>
             <a href="#" onclick="switchPage('tools', this)" class="nav-item flex items-center px-6 py-3 text-slate-300 hover:bg-white/5 hover:text-white transition"><i class="fas fa-toolbox w-6 text-center mr-2"></i> <span class="font-medium text-sm">转换工厂</span></a>
             <a href="#" onclick="switchPage('settings', this)" class="nav-item flex items-center px-6 py-3 text-slate-300 hover:bg-white/5 hover:text-white transition"><i class="fas fa-cog w-6 text-center mr-2"></i> <span class="font-medium text-sm">配置中心</span></a>
         </nav>
-        <div class="p-4 border-t border-white/10">
-            <div class="flex items-center gap-3 text-white/80 cursor-pointer hover:text-white transition" onclick="toggleUserMenu(event)">
-                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold text-xs text-white" id="sidebar-avatar">U</div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold truncate" id="sidebar-username">User</p>
-                    <p class="text-[10px] text-slate-400">在线</p>
-                </div>
-                <i class="fas fa-sign-out-alt hover:text-red-400" onclick="doLogout()"></i>
-            </div>
-        </div>
+        <div class="p-4 border-t border-white/10"><div class="flex items-center gap-3 text-white/80 cursor-pointer hover:text-white transition" onclick="toggleUserMenu(event)"><div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold text-xs" id="sidebar-avatar">U</div><div class="flex-1 min-w-0"><p class="text-sm font-bold truncate" id="sidebar-username">User</p><p class="text-[10px] text-slate-400">在线</p></div><i class="fas fa-sign-out-alt hover:text-red-400" onclick="doLogout()"></i></div></div>
     </aside>
-
     <div class="flex-1 flex flex-col h-full relative">
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 flex-shrink-0">
-            <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-700"><i class="fas fa-bars text-xl"></i></button>
-            <h2 class="text-lg font-bold text-slate-700" id="page-title">工作台</h2>
-            <div class="flex items-center gap-4"><button onclick="window.location.reload()" class="text-slate-400 hover:text-blue-600 transition" title="刷新"><i class="fas fa-sync-alt"></i></button></div>
-        </header>
-
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 flex-shrink-0"><button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-700"><i class="fas fa-bars text-xl"></i></button><h2 class="text-lg font-bold text-slate-700" id="page-title">工作台</h2><div class="flex items-center gap-4"><button onclick="window.location.reload()" class="text-slate-400 hover:text-blue-600 transition" title="刷新"><i class="fas fa-sync-alt"></i></button></div></header>
         <main class="flex-1 overflow-y-auto p-4 md:p-8 relative" id="main-content">
-            
             <div id="page-workbench" class="space-y-6 max-w-6xl mx-auto">
-                <div class="bg-white p-2 rounded-full shadow-sm border border-slate-200 flex items-center focus-within:ring-2 ring-blue-100 transition-all max-w-2xl mx-auto">
-                    <select id="engine-select" class="bg-transparent border-none text-xs font-bold text-slate-600 px-4 py-2 focus:outline-none cursor-pointer rounded-l-full hover:bg-slate-50"><option value="baidu">百度</option><option value="jd">京东</option><option value="taobao">淘宝</option><option value="price">历史价</option></select>
-                    <div class="w-px h-5 bg-slate-200"></div>
-                    <input type="text" id="main-search" placeholder="搜索全网..." class="flex-1 px-4 text-sm bg-transparent border-none focus:outline-none" onkeydown="if(event.key==='Enter') doMainSearch()">
-                    <button onclick="doMainSearch()" class="w-10 h-10 bg-blue-600 rounded-full text-white hover:bg-blue-700 flex items-center justify-center shadow-md transition transform hover:scale-105"><i class="fas fa-arrow-right"></i></button>
-                </div>
-
+                <div class="bg-white p-2 rounded-full shadow-sm border border-slate-200 flex items-center focus-within:ring-2 ring-blue-100 transition-all max-w-2xl mx-auto"><select id="engine-select" class="bg-transparent border-none text-xs font-bold text-slate-600 px-4 py-2 focus:outline-none cursor-pointer rounded-l-full hover:bg-slate-50"><option value="baidu">百度</option><option value="jd">京东</option><option value="taobao">淘宝</option><option value="price">历史价</option></select><div class="w-px h-5 bg-slate-200"></div><input type="text" id="main-search" placeholder="搜索全网..." class="flex-1 px-4 text-sm bg-transparent border-none focus:outline-none" onkeydown="if(event.key==='Enter') doMainSearch()"><button onclick="doMainSearch()" class="w-10 h-10 bg-blue-600 rounded-full text-white hover:bg-blue-700 flex items-center justify-center shadow-md transition transform hover:scale-105"><i class="fas fa-arrow-right"></i></button></div>
+                
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm flex justify-between items-center">
-                        <span><i class="fas fa-chart-line text-yellow-500 mr-2"></i>国内金价实时行情 (来源: 上海黄金交易所)</span>
-                        <a href="http://www.huangjinjiage.cn/guoneijinjia.html" target="_blank" class="text-xs text-blue-500 hover:underline">访问源站 ></a>
-                    </div>
+                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm flex justify-between items-center"><span><i class="fas fa-chart-line text-yellow-500 mr-2"></i>国内金价实时行情 (来源: 上海黄金交易所)</span><span class="text-xs text-slate-400">实时更新</span></div>
                     <div class="p-0">
                         <table class="w-full market-table">
                             <thead>
@@ -119,73 +85,88 @@
                     </div>
                 </div>
 
-                <div>
-                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">常用工具库</h3>
-                    <div class="flex flex-wrap gap-3">
-                        <a href="https://next.itellyou.cn/" target="_blank" class="tool-btn"><i class="fab fa-windows text-blue-500"></i> MSDN 镜像</a>
-                        <a href="https://www.drvceo.com/" target="_blank" class="tool-btn"><i class="fas fa-hdd text-slate-500"></i> 驱动总裁</a>
-                        <a href="http://www.cmdpe.com/" target="_blank" class="tool-btn"><i class="fas fa-terminal text-slate-800"></i> CMDPE</a>
-                        <a href="https://pc.qq.com/" target="_blank" class="tool-btn"><i class="fab fa-qq text-blue-400"></i> 腾讯软件</a>
-                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
-                        <a href="https://chatgpt.com/" target="_blank" class="tool-btn"><i class="fas fa-robot text-green-500"></i> ChatGPT</a>
-                        <a href="https://gemini.google.com/" target="_blank" class="tool-btn"><i class="fas fa-star text-blue-500"></i> Gemini</a>
-                        <a href="https://www.doubao.com/" target="_blank" class="tool-btn"><i class="fas fa-comment-dots text-red-500"></i> 豆包 AI</a>
-                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
-                        <a href="https://github.com/" target="_blank" class="tool-btn"><i class="fab fa-github text-slate-900"></i> GitHub</a>
-                    </div>
-                </div>
-                
+                <div><h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">常用工具库</h3><div class="flex flex-wrap gap-3"><a href="https://next.itellyou.cn/" target="_blank" class="tool-btn"><i class="fab fa-windows text-blue-500"></i> MSDN 镜像</a><a href="https://www.drvceo.com/" target="_blank" class="tool-btn"><i class="fas fa-hdd text-slate-500"></i> 驱动总裁</a><a href="http://www.cmdpe.com/" target="_blank" class="tool-btn"><i class="fas fa-terminal text-slate-800"></i> CMDPE</a><a href="https://pc.qq.com/" target="_blank" class="tool-btn"><i class="fab fa-qq text-blue-400"></i> 腾讯软件</a><div class="w-px h-6 bg-slate-300 mx-1"></div><a href="https://chatgpt.com/" target="_blank" class="tool-btn"><i class="fas fa-robot text-green-500"></i> ChatGPT</a><a href="https://gemini.google.com/" target="_blank" class="tool-btn"><i class="fas fa-star text-blue-500"></i> Gemini</a><a href="https://www.doubao.com/" target="_blank" class="tool-btn"><i class="fas fa-comment-dots text-red-500"></i> 豆包 AI</a><div class="w-px h-6 bg-slate-300 mx-1"></div><a href="https://github.com/" target="_blank" class="tool-btn"><i class="fab fa-github text-slate-900"></i> GitHub</a></div></div>
                 <div><div class="flex justify-between items-end mb-3"><h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">快捷入口</h3><button onclick="openLinkModal()" class="text-xs text-blue-500 hover:bg-blue-50 px-2 py-1 rounded"><i class="fas fa-plus mr-1"></i>添加</button></div><div id="nav-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div></div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div class="px-4 py-3 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm flex justify-between items-center"><span><i class="fas fa-building text-blue-600 mr-2"></i>对公账户</span><span class="text-xs text-slate-400 cursor-pointer hover:text-blue-600" onclick="openConfigModal()">管理</span></div><div id="sec-corp" class="p-4 space-y-3"></div></div><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div class="px-4 py-3 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm flex justify-between items-center"><span><i class="fas fa-user-shield text-yellow-600 mr-2"></i>对私账户</span><span class="text-xs text-slate-400 cursor-pointer hover:text-blue-600" onclick="openConfigModal()">管理</span></div><div id="sec-personal" class="p-4 space-y-3"></div></div></div>
             </div>
-
+            
             <div id="page-documents" class="hidden space-y-8 max-w-4xl mx-auto">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-xl"></div>
-                    <h3 class="font-bold text-slate-800 text-lg mb-6 flex items-center"><i class="fas fa-file-contract text-blue-600 mr-3"></i>销售合同生成</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div class="space-y-4"><div><label class="text-xs font-bold text-slate-500 mb-1 block">乙方 (我方)</label><select id="party-b-select" class="clean-input"></select></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">甲方 (客户)</label><input type="text" id="party-a-name" placeholder="客户全称" class="clean-input"></div></div>
-                        <div class="space-y-4"><div><label class="text-xs font-bold text-slate-500 mb-1 block">甲方联系人</label><input type="text" id="party-a-contact" placeholder="姓名" class="clean-input"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">甲方电话</label><input type="text" id="party-a-phone" placeholder="电话" class="clean-input"></div></div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative"><div class="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-xl"></div><h3 class="font-bold text-slate-800 text-lg mb-6 flex items-center"><i class="fas fa-file-contract text-blue-600 mr-3"></i>销售合同生成</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"><div class="space-y-4"><div><label class="text-xs font-bold text-slate-500 mb-1 block">乙方 (我方)</label><select id="party-b-select" class="clean-input"></select></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">甲方 (客户)</label><input type="text" id="party-a-name" placeholder="客户全称" class="clean-input"></div></div><div class="space-y-4"><div><label class="text-xs font-bold text-slate-500 mb-1 block">甲方联系人</label><input type="text" id="party-a-contact" placeholder="姓名" class="clean-input"></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">甲方电话</label><input type="text" id="party-a-phone" placeholder="电话" class="clean-input"></div></div></div><div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-6"><div class="grid grid-cols-12 gap-2 bg-slate-100 border-b border-slate-200 text-[11px] text-slate-500 font-bold py-2 px-3"><div class="col-span-3">品名</div><div class="col-span-3 text-center">型号</div><div class="col-span-2 text-center">数量</div><div class="col-span-2 text-center">单价</div><div class="col-span-2 text-center"><button onclick="addProductRow()" class="text-blue-600 hover:text-blue-800">+ 添加</button></div></div><div id="product-rows" class="divide-y divide-slate-100"></div><div class="px-4 py-3 flex justify-between items-center text-sm font-bold bg-white"><span class="text-slate-500">大写：<span id="total-cn" class="text-slate-800">-</span></span><span class="text-blue-600">¥ <span id="total-num">0.00</span></span></div></div><button onclick="previewContract()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg shadow-blue-200 transition"><i class="fas fa-eye mr-2"></i>生成合同预览</button></div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative"><div class="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-l-xl"></div><h3 class="font-bold text-slate-800 text-lg mb-6 flex justify-between items-center"><span><i class="fas fa-receipt text-orange-500 mr-3"></i>便捷收据生成</span><button onclick="copyFromContract()" class="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full font-bold hover:bg-orange-100 transition"><i class="fas fa-arrow-down mr-1"></i>同步上方商品</button></h3><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4"><div><label class="text-xs font-bold text-slate-500 mb-1 block">销售方 (收款)</label><select id="rec-payee-select" class="clean-input"></select></div><div><label class="text-xs font-bold text-slate-500 mb-1 block">交款人 (付款)</label><input type="text" id="rec-payer" placeholder="客户姓名" class="clean-input"></div></div><div class="mb-4"><label class="text-xs font-bold text-slate-500 mb-2 block">收款方式</label><div class="flex gap-6 text-sm font-bold text-slate-600"><label class="flex items-center cursor-pointer hover:text-orange-600"><input type="radio" name="pay-method" value="微信" checked class="accent-orange-500 mr-2">微信</label><label class="flex items-center cursor-pointer hover:text-blue-600"><input type="radio" name="pay-method" value="支付宝" class="accent-blue-500 mr-2">支付宝</label><label class="flex items-center cursor-pointer hover:text-green-600"><input type="radio" name="pay-method" value="现金" class="accent-green-500 mr-2">现金</label><label class="flex items-center cursor-pointer hover:text-slate-800"><input type="radio" name="pay-method" value="银行转账" class="accent-slate-500 mr-2">转账</label></div></div><div class="mb-4"><label class="text-xs font-bold text-slate-500 mb-1 block">备注</label><input type="text" id="rec-remark" placeholder="例如：质保一年..." class="clean-input"></div><div class="bg-orange-50/30 rounded-lg border border-orange-100 overflow-hidden mb-6"><div class="grid grid-cols-12 gap-2 bg-orange-50 border-b border-orange-100 text-[11px] text-orange-800 font-bold py-2 px-3"><div class="col-span-5 text-left pl-2">收款项目</div><div class="col-span-2 text-center">数量</div><div class="col-span-3 text-center">金额</div><div class="col-span-2 text-center"><button onclick="addReceiptRow()" class="text-orange-600 hover:text-orange-800 font-bold">+ 添加</button></div></div><div id="receipt-rows" class="divide-y divide-orange-100"></div><div class="px-4 py-3 flex justify-between items-center text-sm font-bold bg-white"><span class="text-slate-500">合计</span><span class="text-orange-600">¥ <span id="rec-total-num">0.00</span></span></div></div><button onclick="previewReceipt()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold shadow-lg shadow-orange-200 transition"><i class="fas fa-ticket-alt mr-2"></i>生成三联单预览</button></div></div>
+            
+            <div id="page-tools" class="hidden space-y-6 max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative group hover:border-yellow-400 transition">
+                        <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition"><i class="fas fa-coins text-6xl text-yellow-500"></i></div>
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center"><i class="fas fa-yen-sign text-yellow-500 mr-2 bg-yellow-50 p-2 rounded-lg"></i>金额大写转换</h3>
+                        <input type="number" oninput="convertRMB(this.value)" placeholder="输入金额..." class="w-full text-sm px-3 py-3 border rounded-lg focus:border-yellow-500 outline-none mb-4 bg-slate-50">
+                        <p id="rmb-result" class="text-lg font-bold text-yellow-600 text-center py-3 bg-yellow-50 rounded-lg border border-yellow-100 dashed">零元整</p>
                     </div>
-                    <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden mb-6">
-                        <div class="grid grid-cols-12 gap-2 bg-slate-100 border-b border-slate-200 text-[11px] text-slate-500 font-bold py-2 px-3"><div class="col-span-3">品名</div><div class="col-span-3 text-center">型号</div><div class="col-span-2 text-center">数量</div><div class="col-span-2 text-center">单价</div><div class="col-span-2 text-center"><button onclick="addProductRow()" class="text-blue-600 hover:text-blue-800">+ 添加</button></div></div>
-                        <div id="product-rows" class="divide-y divide-slate-100"></div>
-                        <div class="px-4 py-3 flex justify-between items-center text-sm font-bold bg-white"><span class="text-slate-500">大写：<span id="total-cn" class="text-slate-800">-</span></span><span class="text-blue-600">¥ <span id="total-num">0.00</span></span></div>
-                    </div>
-                    <button onclick="previewContract()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-lg shadow-blue-200 transition"><i class="fas fa-eye mr-2"></i>生成合同预览</button>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-orange-500 rounded-l-xl"></div>
-                    <h3 class="font-bold text-slate-800 text-lg mb-6 flex justify-between items-center">
-                        <span><i class="fas fa-receipt text-orange-500 mr-3"></i>便捷收据生成</span>
-                        <button onclick="copyFromContract()" class="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full font-bold hover:bg-orange-100 transition"><i class="fas fa-arrow-down mr-1"></i>同步上方商品</button>
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                        <div><label class="text-xs font-bold text-slate-500 mb-1 block">销售方 (收款)</label><select id="rec-payee-select" class="clean-input"></select></div>
-                        <div><label class="text-xs font-bold text-slate-500 mb-1 block">交款人 (付款)</label><input type="text" id="rec-payer" placeholder="客户姓名" class="clean-input"></div>
-                    </div>
-                    <div class="mb-4"><label class="text-xs font-bold text-slate-500 mb-2 block">收款方式</label><div class="flex gap-6 text-sm font-bold text-slate-600"><label class="flex items-center cursor-pointer hover:text-orange-600"><input type="radio" name="pay-method" value="微信" checked class="accent-orange-500 mr-2">微信</label><label class="flex items-center cursor-pointer hover:text-blue-600"><input type="radio" name="pay-method" value="支付宝" class="accent-blue-500 mr-2">支付宝</label><label class="flex items-center cursor-pointer hover:text-green-600"><input type="radio" name="pay-method" value="现金" class="accent-green-500 mr-2">现金</label><label class="flex items-center cursor-pointer hover:text-slate-800"><input type="radio" name="pay-method" value="银行转账" class="accent-slate-500 mr-2">转账</label></div></div>
-                    <div class="mb-4"><label class="text-xs font-bold text-slate-500 mb-1 block">备注</label><input type="text" id="rec-remark" placeholder="例如：质保一年..." class="clean-input"></div>
-                    <div class="bg-orange-50/30 rounded-lg border border-orange-100 overflow-hidden mb-6">
-                        <div class="grid grid-cols-12 gap-2 bg-orange-50 border-b border-orange-100 text-[11px] text-orange-800 font-bold py-2 px-3">
-                            <div class="col-span-5 text-left pl-2">收款项目</div>
-                            <div class="col-span-2 text-center">数量</div>
-                            <div class="col-span-3 text-center">金额</div>
-                            <div class="col-span-2 text-center"><button onclick="addReceiptRow()" class="text-orange-600 hover:text-orange-800 font-bold">+ 添加</button></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative group hover:border-blue-400 transition">
+                        <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition"><i class="fas fa-qrcode text-6xl text-blue-500"></i></div>
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center"><i class="fas fa-expand text-blue-500 mr-2 bg-blue-50 p-2 rounded-lg"></i>二维码内容提取</h3>
+                        <div class="relative w-full h-32 border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition cursor-pointer">
+                            <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="scanQR(this)">
+                            <i class="fas fa-cloud-upload-alt text-2xl text-slate-400 mb-2"></i>
+                            <span class="text-xs text-slate-500">点击上传二维码图片</span>
                         </div>
-                        <div id="receipt-rows" class="divide-y divide-orange-100"></div>
-                        <div class="px-4 py-3 flex justify-between items-center text-sm font-bold bg-white"><span class="text-slate-500">合计</span><span class="text-orange-600">¥ <span id="rec-total-num">0.00</span></span></div>
+                        <div id="qr-result-box" class="hidden mt-3 p-2 bg-slate-100 rounded text-xs text-slate-600 break-all border border-slate-200"></div>
                     </div>
-                    <button onclick="previewReceipt()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-bold shadow-lg shadow-orange-200 transition"><i class="fas fa-ticket-alt mr-2"></i>生成三联单预览</button>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-400 transition cursor-pointer" onclick="openTool('CPU 天梯图', 'https://tools.miku.ac/cpu_rank/')"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600"><i class="fas fa-microchip text-xl"></i></div><div><h3 class="font-bold text-slate-700">CPU 天梯图</h3><p class="text-xs text-slate-400 mt-1">处理器性能排行查询</p></div></div></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-purple-400 transition cursor-pointer" onclick="openTool('显卡天梯图', 'https://tools.miku.ac/gpu_rank/')"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600"><i class="fas fa-gamepad text-xl"></i></div><div><h3 class="font-bold text-slate-700">显卡天梯图</h3><p class="text-xs text-slate-400 mt-1">GPU 性能排行查询</p></div></div></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-green-400 transition cursor-pointer" onclick="openTool('实时汇率转换', 'https://tools.miku.ac/exchange_rate/')"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600"><i class="fas fa-exchange-alt text-xl"></i></div><div><h3 class="font-bold text-slate-700">实时汇率转换</h3><p class="text-xs text-slate-400 mt-1">多国货币实时换算</p></div></div></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-pink-400 transition cursor-pointer" onclick="openTool('亲戚关系计算', 'https://tools.miku.ac/relatives_name/')"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center text-pink-600"><i class="fas fa-users text-xl"></i></div><div><h3 class="font-bold text-slate-700">亲戚关系转换</h3><p class="text-xs text-slate-400 mt-1">三姑六婆称呼计算器</p></div></div></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:border-cyan-400 transition cursor-pointer" onclick="openTool('号码归属查询', 'https://tools.miku.ac/mobile_tel_segment/')"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-cyan-100 rounded-xl flex items-center justify-center text-cyan-600"><i class="fas fa-map-marker-alt text-xl"></i></div><div><h3 class="font-bold text-slate-700">号码归属查询</h3><p class="text-xs text-slate-400 mt-1">手机号段归属地查询</p></div></div></div>
                 </div>
             </div>
 
-            <div id="page-tools" class="hidden space-y-6 max-w-4xl mx-auto"><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><h3 class="font-bold text-purple-600 mb-4 flex items-center"><i class="fas fa-link mr-2"></i>短链生成</h3><div class="flex gap-2 mb-4"><input type="text" id="short-long" placeholder="输入长链接..." class="flex-1 text-sm px-3 py-2 border rounded focus:border-purple-500 outline-none"><button onclick="genShort()" class="bg-purple-600 text-white px-4 rounded text-sm font-bold hover:bg-purple-700">生成</button></div><div id="short-res" class="text-xs bg-slate-50 p-2 rounded text-slate-500 break-all cursor-pointer hover:bg-purple-50 hover:text-purple-600" onclick="copyText(this.innerText)">生成结果...</div></div><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><h3 class="font-bold text-yellow-600 mb-4 flex items-center"><i class="fas fa-coins mr-2"></i>大写转换</h3><input type="number" oninput="convertRMB(this.value)" placeholder="输入金额..." class="w-full text-sm px-3 py-2 border rounded focus:border-yellow-500 outline-none mb-4"><p id="rmb-result" class="text-lg font-bold text-yellow-600 text-center py-2 bg-yellow-50 rounded">零元整</p></div></div></div>
-            <div id="page-settings" class="hidden space-y-6 max-w-4xl mx-auto"><div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"><div class="border-b border-slate-200 flex"><button onclick="switchTab('corp')" id="tab-corp" class="px-6 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50">企业主体</button><button onclick="switchTab('personal')" id="tab-personal" class="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-700">个人账户</button></div><div class="p-6"><div id="view-corp" class="space-y-4"><div class="bg-slate-50 p-3 rounded-lg border border-slate-200 border-dashed"><textarea id="smart-parse-text-corp" rows="3" class="w-full text-xs bg-transparent border-none outline-none resize-none placeholder-slate-400" placeholder="⚡ 粘贴发票信息，智能识别..."></textarea><button onclick="smartParse('corp')" class="w-full mt-2 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded hover:bg-slate-300 transition">一键智能识别填充</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input id="conf-name" type="text" placeholder="公司全称" class="clean-input"><input id="conf-abbr" type="text" placeholder="英文缩写" class="clean-input"><input id="conf-tax" type="text" placeholder="税号" class="clean-input"><input id="conf-bank" type="text" placeholder="开户行" class="clean-input"><input id="conf-account" type="text" placeholder="账号" class="clean-input"><input id="conf-address" type="text" placeholder="地址" class="clean-input"><input id="conf-contact" type="text" placeholder="联系人" class="clean-input"><input id="conf-phone" type="text" placeholder="电话" class="clean-input"></div><button onclick="saveEntity()" class="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">保存企业信息</button><div class="mt-4"><h4 class="text-xs font-bold text-slate-400 mb-2">已保存主体</h4><div id="entity-list-preview" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div></div></div><div id="view-personal" class="hidden space-y-4"><div class="bg-slate-50 p-3 rounded-lg border border-slate-200 border-dashed"><textarea id="smart-parse-text-personal" rows="3" class="w-full text-xs bg-transparent border-none outline-none resize-none placeholder-slate-400" placeholder="⚡ 粘贴个人账号信息..."></textarea><button onclick="smartParse('personal')" class="w-full mt-2 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded hover:bg-slate-300 transition">一键智能识别填充</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><select id="p-type" class="clean-input" onchange="togglePersonalFields()"><option value="bank">银行卡</option><option value="alipay">支付宝</option><option value="wechat">微信</option></select><input id="p-name" type="text" placeholder="姓名" class="clean-input"><div id="field-bank" class="contents"><input id="p-bank-name" type="text" placeholder="开户行" class="clean-input"><input id="p-account" type="text" placeholder="卡号" class="clean-input"></div><div id="field-qr" class="hidden col-span-2"><input type="file" id="p-qr-file" class="text-xs w-full"></div></div><button onclick="savePersonal()" class="w-full py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700">保存个人账户</button><div class="mt-4"><h4 class="text-xs font-bold text-slate-400 mb-2">已保存账户</h4><div id="personal-list-preview" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div></div></div></div></div></div>
+            <div id="page-settings" class="hidden space-y-6 max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="border-b border-slate-200 flex"><button onclick="switchTab('corp')" id="tab-corp" class="px-6 py-3 text-sm font-bold text-blue-600 border-b-2 border-blue-600 bg-blue-50">企业主体</button><button onclick="switchTab('personal')" id="tab-personal" class="px-6 py-3 text-sm font-bold text-slate-500 hover:text-slate-700">个人账户</button></div>
+                    <div class="p-6">
+                        <div id="view-corp" class="space-y-4">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 border-dashed"><textarea id="smart-parse-text-corp" rows="3" class="w-full text-xs bg-transparent border-none outline-none resize-none placeholder-slate-400" placeholder="⚡ 粘贴发票信息，智能识别..."></textarea><button onclick="smartParse('corp')" class="w-full mt-2 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded hover:bg-slate-300 transition">一键智能识别填充</button></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input id="conf-name" type="text" placeholder="公司全称" class="clean-input"><input id="conf-abbr" type="text" placeholder="英文缩写" class="clean-input"><input id="conf-tax" type="text" placeholder="税号" class="clean-input"><input id="conf-bank" type="text" placeholder="开户行" class="clean-input"><input id="conf-account" type="text" placeholder="账号" class="clean-input"><input id="conf-address" type="text" placeholder="地址" class="clean-input"><input id="conf-contact" type="text" placeholder="联系人" class="clean-input"><input id="conf-phone" type="text" placeholder="电话" class="clean-input"></div>
+                            <button onclick="saveEntity()" class="w-full py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">保存企业信息</button>
+                            <div class="mt-4"><h4 class="text-xs font-bold text-slate-400 mb-2">已保存主体</h4><div id="entity-list-preview" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div></div>
+                        </div>
+                        <div id="view-personal" class="hidden space-y-4">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 border-dashed"><textarea id="smart-parse-text-personal" rows="3" class="w-full text-xs bg-transparent border-none outline-none resize-none placeholder-slate-400" placeholder="⚡ 粘贴个人账号信息..."></textarea><button onclick="smartParse('personal')" class="w-full mt-2 py-1 bg-slate-200 text-slate-600 text-xs font-bold rounded hover:bg-slate-300 transition">一键智能识别填充</button></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><select id="p-type" class="clean-input" onchange="togglePersonalFields()"><option value="bank">银行卡</option><option value="alipay">支付宝</option><option value="wechat">微信</option></select><input id="p-name" type="text" placeholder="姓名" class="clean-input"><div id="field-bank" class="contents"><input id="p-bank-name" type="text" placeholder="开户行" class="clean-input"><input id="p-account" type="text" placeholder="卡号" class="clean-input"></div><div id="field-qr" class="hidden col-span-2"><input type="file" id="p-qr-file" class="text-xs w-full"></div></div>
+                            <button onclick="savePersonal()" class="w-full py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700">保存个人账户</button>
+                            <div class="mt-4"><h4 class="text-xs font-bold text-slate-400 mb-2">已保存账户</h4><div id="personal-list-preview" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-3 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm"><i class="fas fa-link text-blue-600 mr-2"></i>快捷入口管理</div>
+                    <div class="p-6">
+                        <div class="flex gap-4 mb-4">
+                            <input id="new-link-name" type="text" placeholder="网站名称 (如: 百度)" class="clean-input flex-1">
+                            <input id="new-link-url" type="text" placeholder="网址 (如: baidu.com)" class="clean-input flex-[2]">
+                            <button onclick="saveNewLink()" class="px-4 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">添加</button>
+                        </div>
+                        <div id="settings-link-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
     
+    <div id="tool-modal" class="hidden fixed inset-0 bg-black/80 z-[100] flex flex-col backdrop-blur-sm">
+        <div class="h-12 bg-white flex justify-between items-center px-4 flex-shrink-0">
+            <h3 class="font-bold text-slate-700" id="tool-modal-title">工具箱</h3>
+            <div class="flex items-center gap-3">
+                <a id="tool-new-tab" href="#" target="_blank" class="text-xs text-blue-500 hover:underline"><i class="fas fa-external-link-alt mr-1"></i>新窗口打开</a>
+                <button onclick="document.getElementById('tool-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div class="flex-1 bg-white relative">
+            <iframe id="tool-frame" class="w-full h-full border-none" src=""></iframe>
+        </div>
+    </div>
+
     <div id="preview-modal" class="hidden fixed inset-0 bg-black/70 z-[80] flex items-center justify-center backdrop-blur-md"><div class="bg-white rounded-2xl shadow-2xl w-[800px] max-h-[98vh] flex flex-col overflow-hidden"><div class="flex justify-between items-center p-4 border-b bg-slate-50 no-print"><h3 class="text-lg font-bold text-slate-800" id="preview-title">预览</h3><button onclick="document.getElementById('preview-modal').classList.add('hidden')" class="text-slate-400 hover:text-red-500 text-2xl">&times;</button></div><div id="print-area" class="flex-1 p-8 overflow-y-auto bg-white contract-font"></div><div class="p-4 border-t bg-slate-50 flex gap-3 no-print z-50"><button onclick="window.print()" class="flex-1 py-3 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition flex items-center justify-center gap-2"><i class="fas fa-print"></i> 立即打印</button><button id="btn-export-word" onclick="exportToWord()" class="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition hidden"><i class="fas fa-file-word mr-1"></i> 导出 Word</button></div></div></div>
     <div id="link-modal" class="hidden"></div><div id="config-modal" class="hidden"></div>
     <div id="qr-modal" class="hidden fixed inset-0 bg-black/80 z-[90] flex items-center justify-center backdrop-blur-sm" onclick="this.classList.add('hidden')"><img id="qr-display-img" src="" class="max-w-[300px] rounded-xl shadow-2xl"></div>
@@ -226,7 +207,43 @@
         window.toggleSidebar = function() { document.getElementById('sidebar').classList.toggle('hidden'); }
         window.doMainSearch = function(){const k=document.getElementById('main-search').value, t=document.getElementById('engine-select').value; if(k)window.open(t==='price'?`http://s.manmanbuy.com/Default.aspx?key=${k}`:`https://www.baidu.com/s?wd=${k}`,'_blank');}
         window.convertRMB = function(n){ safeSetText('rmb-result', convertCurrency(n)); }
-        async function genShort() { const u=document.getElementById('short-long').value; if(!u)return; const r=await authFetch(`${API_BASE}/tools/shorten`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url:u})}); document.getElementById('short-res').innerText=r.shortUrl; }
+        
+        window.openTool = function(title, url) {
+            document.getElementById('tool-modal-title').innerText = title;
+            document.getElementById('tool-frame').src = url;
+            document.getElementById('tool-new-tab').href = url;
+            document.getElementById('tool-modal').classList.remove('hidden');
+        }
+        
+        window.scanQR = function(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    context.drawImage(img, 0, 0, img.width, img.height);
+                    const imageData = context.getImageData(0, 0, img.width, img.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    const box = document.getElementById('qr-result-box');
+                    if (code) {
+                        box.innerHTML = `<span class="font-bold text-green-600">识别成功：</span> ${code.data} <button class="ml-2 text-blue-500 underline" onclick="copyText('${code.data}')">复制</button>`;
+                        box.classList.remove('hidden');
+                    } else {
+                        box.innerHTML = '<span class="text-red-500">无法识别二维码，请确保图片清晰</span>';
+                        box.classList.remove('hidden');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function genShort() { alert("功能已下线"); }
         window.showQR = function(s){ if(!s)return alert("未上传"); document.getElementById('qr-display-img').src=s.replace('http://localhost:3000',''); document.getElementById('qr-modal').classList.remove('hidden'); }
         function convertCurrency(n) { if(!n) return '零元整'; const d=['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];const u=[['元','万','亿'],['','拾','佰','仟']];let s=''; n=Math.abs(n);for(let i=0;i<u[0].length&&n>0;i++){let p='';for(let j=0;j<u[1].length&&n>0;j++){p=d[n%10]+u[1][j]+p;n=Math.floor(n/10);}s=p.replace(/(零.)*零$/,'').replace(/^$/,'零')+u[0][i]+s;} return s.replace(/(零.)*零元/,'元').replace(/(零.)+/g,'零').replace(/^整$/,'零元整')+"整"; }
         function copyText(t){navigator.clipboard.writeText(t).then(()=>alert('已复制'));}
@@ -337,29 +354,114 @@
         window.smartParse = function(type) { const text = document.getElementById(type==='corp' ? 'smart-parse-text-corp' : 'smart-parse-text-personal').value; if(!text) return alert("请先粘贴信息"); const rules = { name: /(?:名称|单位|户名|姓名|企业名称|账户名)[:：]?\s*([^\n\s]+)/, tax: /(?:税号|信用代码|统一社会信用代码)[:：]?\s*([A-Z0-9]{15,20})/, bank: /(?:开户行|银行|开户银行)[:：]?\s*([^\n\s\d]+)/, account: /(?:账号|账户|帐号|卡号)[:：]?\s*(\d[\d\s-]{8,})/, address: /(?:地址|企业地址)[:：]?\s*([^\n]+)/, phone: /(?:电话|手机|联系)[:：]?\s*([\d-]{8,})/ }; const extract = (key) => { const m = text.match(rules[key]); return m ? m[1].trim() : ''; }; if (type === 'corp') { document.getElementById('conf-name').value = extract('name'); document.getElementById('conf-tax').value = extract('tax'); document.getElementById('conf-bank').value = extract('bank'); document.getElementById('conf-account').value = extract('account'); document.getElementById('conf-address').value = extract('address'); document.getElementById('conf-phone').value = extract('phone'); try { const name = extract('name'); if(name) document.getElementById('conf-abbr').value = pinyin(name, {pattern:'first', toneType:'none', type:'array'}).join('').toUpperCase(); } catch(e){} } else { document.getElementById('p-name').value = extract('name'); document.getElementById('p-bank-name').value = extract('bank'); document.getElementById('p-account').value = extract('account'); const bankVal = extract('bank'); document.getElementById('p-type').value = bankVal ? 'bank' : 'alipay'; togglePersonalFields(); } alert("识别完成，请核对信息！"); }
         window.saveEntity = async function(){ const d={name:document.getElementById('conf-name').value, abbr:document.getElementById('conf-abbr').value||'CODE', tax:document.getElementById('conf-tax').value, address:document.getElementById('conf-address').value, contact:document.getElementById('conf-contact').value, phone:document.getElementById('conf-phone').value, bank:document.getElementById('conf-bank').value, account:document.getElementById('conf-account').value}; if(!d.name)return alert("名称必填"); await authFetch(`${API_BASE}/company/save`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)}); renderAll(); alert('保存成功'); }
         window.removeEntity = async function(id){ if(confirm('删?')){ await authFetch(`${API_BASE}/company/delete`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}); renderAll(); } }
-        window.savePersonal = async function(){ const t=document.getElementById('p-type').value, n=document.getElementById('p-name').value; if(!n)return alert("姓名必填"); const d={type:t, name:n, bank:document.getElementById('p-bank-name').value, account:document.getElementById('p-account').value, qr_url:''}; await authFetch(`${API_BASE}/personal/save`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)}); renderAll(); alert('保存成功'); }
+        
+        // 🚀 核心修复：上传图片逻辑 + 保存数据
+        window.savePersonal = async function(){ 
+            const t = document.getElementById('p-type').value; 
+            const n = document.getElementById('p-name').value; 
+            if(!n) return alert("姓名必填"); 
+            
+            let qrUrl = '';
+            // 如果不是银行卡，尝试上传图片
+            if (t !== 'bank') {
+                const fileInput = document.getElementById('p-qr-file');
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    try {
+                        const upRes = await fetch(`${API_BASE}/upload`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` }, // 不设置Content-Type，让浏览器自适应multipart
+                            body: formData
+                        });
+                        const upData = await upRes.json();
+                        if (upData.url) qrUrl = upData.url;
+                    } catch(e) {
+                        console.error("上传失败", e);
+                        return alert("二维码图片上传失败，请重试");
+                    }
+                }
+            }
+
+            const d = {
+                type: t, 
+                name: n, 
+                bank: document.getElementById('p-bank-name').value, 
+                account: document.getElementById('p-account').value, 
+                qr_url: qrUrl
+            }; 
+            
+            await authFetch(`${API_BASE}/personal/save`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)}); 
+            renderAll(); 
+            alert('保存成功'); 
+        }
+        
         window.removePersonal = async function(id){ if(confirm('删?')){ await authFetch(`${API_BASE}/personal/delete`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}); renderAll(); } }
+        
         window.saveNewLink = async function(){const n=document.getElementById('new-link-name').value, u=document.getElementById('new-link-url').value; if(!n||!u)return; await authFetch(`${API_BASE}/link/save`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name:n, url:u.startsWith('http')?u:'https://'+u})}); renderAll(); document.getElementById('new-link-name').value=''; document.getElementById('new-link-url').value=''; }
         window.removeLink = async function(id){ await authFetch(`${API_BASE}/link/delete`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})}); renderAll(); }
         window.updateProfile = async function(){ const c=document.getElementById('up-company').value, p=document.getElementById('up-phone').value, pwd=document.getElementById('up-pass').value; await authFetch(`${API_BASE}/user/update`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({company_name:c, phone:p, password:pwd})}); alert('修改成功'); userInfo.company=c; userInfo.phone=p; localStorage.setItem('zenflow_user', JSON.stringify(userInfo)); document.getElementById('profile-modal').classList.add('hidden'); }
-        async function renderAll() { try { const r1 = await authFetch(`${API_BASE}/company/list`); myEntities=r1.data||[]; const r2 = await authFetch(`${API_BASE}/personal/list`); myPersonals=r2.data||[]; const r3 = await authFetch(`${API_BASE}/link/list`); myLinks=r3.data||[]; const bSel = document.getElementById('party-b-select'); if(bSel) bSel.innerHTML = myEntities.map(e => `<option value="${e.id}">${e.name}</option>`).join(''); const recSel = document.getElementById('rec-payee-select'); if(recSel) { let ops = '<optgroup label="企业">'; ops += myEntities.map(e => `<option value="corp_${e.id}">${e.name}</option>`).join(''); ops += '</optgroup><optgroup label="个人">'; ops += myPersonals.map(p => `<option value="personal_${p.id}">${p.name}</option>`).join(''); ops += '</optgroup>'; recSel.innerHTML = ops; } document.getElementById('sec-corp').innerHTML = myEntities.map(e => `<div class="p-3 bg-blue-50 border border-blue-100 rounded hover:bg-blue-100 transition cursor-pointer relative" onclick="copyText('名称：${e.name}\\n税号：${e.tax}\\n账号：${e.account}\\n开户行：${e.bank}')"><p class="text-xs font-bold text-blue-800 mb-1 truncate">${e.name}</p><p class="text-[10px] text-blue-600 font-mono">税号：${e.tax||'未录入'}</p><p class="text-[10px] text-blue-600 font-mono">账号：${e.account}</p></div>`).join(''); document.getElementById('sec-personal').innerHTML = myPersonals.map(p => { let info = p.type; if(p.type==='bank' && p.bank) info = `${p.bank} <span class="font-mono text-[9px] text-slate-400">(${p.account.slice(-4)})</span>`; else if(p.type==='alipay') info = '<span class="text-blue-500">支付宝</span>'; else if(p.type==='wechat') info = '<span class="text-green-500">微信</span>'; return `<div class="p-3 bg-orange-50 border border-orange-100 rounded hover:bg-orange-100 cursor-pointer" onclick="copyText('${p.type==='bank' ? `户名：${p.name}\\n账号：${p.account}\\n开户行：${p.bank}` : `姓名：${p.name}\\n类型：${p.type}`}')"><p class="text-xs font-bold text-orange-800 mb-1 truncate">${p.name}</p><p class="text-[10px] text-orange-600 font-bold">${info}</p></div>`; }).join(''); document.getElementById('nav-grid').innerHTML = myLinks.map(l=>`<div class="group bg-white p-3 rounded-xl flex flex-col items-center justify-center border hover:border-blue-300 cursor-pointer relative" onclick="window.open('${l.url}','_blank')"><button onclick="event.stopPropagation();removeLink(${l.id});" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[8px] hidden group-hover:flex items-center justify-center">×</button><span class="text-xs font-bold text-blue-600 bg-blue-50 w-8 h-8 flex items-center justify-center rounded-full mb-1">${l.name[0]}</span><span class="text-[10px] text-slate-600 truncate w-full text-center">${l.name}</span></div>`).join(''); document.getElementById('entity-list-preview').innerHTML = myEntities.map(e => `<div class="flex justify-between items-center text-xs bg-slate-50 p-2 rounded"><span>${e.name}</span><button onclick="removeEntity(${e.id})" class="text-red-400">删</button></div>`).join(''); document.getElementById('personal-list-preview').innerHTML = myPersonals.map(p => { let info = p.type; if(p.type==='bank') info = p.bank; return `<div class="flex justify-between items-center text-xs bg-slate-50 p-2 rounded"><span>${p.name} - ${info}</span><button onclick="removePersonal(${p.id})" class="text-red-400">删</button></div>`; }).join(''); } catch(e) { console.error(e); } }
-        async function fetchGoldPrice() { try { const res = await authFetch(`${API_BASE}/tools/gold-price`); const html = (res.data || []).map(m => { 
-            // 修正逻辑: 黄金减7元，铂金减10元，白银减0.15元
-            let rawPrice = parseFloat(m.price);
-            let adjust = 0;
-            if (m.name.includes('黄金') || m.name.includes('Au') || m.name.includes('100g')) {
-                adjust = -7; 
-            } else if (m.name.includes('铂金') || m.name.includes('PT')) {
-                adjust = -10; 
-            } else if (m.name.includes('白银')) { // 你的API示例里没白银，但加上以防万一
-                adjust = -0.15; 
-            }
-            const finalPrice = (rawPrice + adjust).toFixed(2);
-            
-            const val = parseFloat(m.change.replace('%','')); 
-            const color = val > 0 ? 'text-red-500 font-bold' : (val < 0 ? 'text-green-600 font-bold' : 'text-slate-500'); 
-            return `<tr class="hover:bg-slate-50 transition"><td>${m.name}</td><td class="${color}">${finalPrice}</td><td class="${color}">${val>0?'↑':(val<0?'↓':'')} ${m.change}</td><td class="text-slate-500">${m.max}</td><td class="text-slate-500">${m.min}</td><td class="text-right pr-6 text-xs text-slate-400 font-mono">${m.time}</td></tr>`; 
-        }).join('') || '<tr><td colspan="6" class="text-center text-slate-400 py-6">暂无数据</td></tr>'; document.getElementById('table-gold-price').innerHTML = html; } catch(e) { document.getElementById('table-gold-price').innerHTML = '<tr><td colspan="6" class="text-center text-red-400 py-6">行情加载失败，请检查网络</td></tr>'; } }
+        
+        async function renderAll() {
+            try {
+                const r1 = await authFetch(`${API_BASE}/company/list`); myEntities=r1.data||[];
+                const r2 = await authFetch(`${API_BASE}/personal/list`); myPersonals=r2.data||[];
+                const r3 = await authFetch(`${API_BASE}/link/list`); myLinks=r3.data||[];
+                const bSel = document.getElementById('party-b-select'); if(bSel) bSel.innerHTML = myEntities.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+                const recSel = document.getElementById('rec-payee-select'); if(recSel) { let ops = '<optgroup label="企业">'; ops += myEntities.map(e => `<option value="corp_${e.id}">${e.name}</option>`).join(''); ops += '</optgroup><optgroup label="个人">'; ops += myPersonals.map(p => `<option value="personal_${p.id}">${p.name}</option>`).join(''); ops += '</optgroup>'; recSel.innerHTML = ops; }
+                document.getElementById('sec-corp').innerHTML = myEntities.map(e => `<div class="p-3 bg-blue-50 border border-blue-100 rounded hover:bg-blue-100 transition cursor-pointer relative" onclick="copyText('名称：${e.name}\\n税号：${e.tax}\\n账号：${e.account}\\n开户行：${e.bank}')"><p class="text-xs font-bold text-blue-800 mb-1 truncate">${e.name}</p><p class="text-[10px] text-blue-600 font-mono">税号：${e.tax||'未录入'}</p><p class="text-[10px] text-blue-600 font-mono">账号：${e.account}</p></div>`).join('');
+                
+                // 🚀 核心修复：渲染时判断是否有二维码
+                document.getElementById('sec-personal').innerHTML = myPersonals.map(p => { 
+                    let info = p.type; 
+                    let clickAction = '';
+                    
+                    if(p.type==='bank') {
+                        info = `${p.bank} <span class="font-mono text-[9px] text-slate-400">(${p.account.slice(-4)})</span>`; 
+                        clickAction = `copyText('户名：${p.name}\\n账号：${p.account}\\n开户行：${p.bank}')`;
+                    } else if(p.type==='alipay') {
+                        info = '<span class="text-blue-500">支付宝</span>'; 
+                        // 有码显示码，无码复制
+                        if(p.qr_url && p.qr_url.length > 5) clickAction = `showQR('${p.qr_url}')`;
+                        else clickAction = `copyText('姓名：${p.name}\\n类型：${p.type}\\n账号：${p.account}')`;
+                    } else if(p.type==='wechat') {
+                        info = '<span class="text-green-500">微信</span>'; 
+                        // 有码显示码，无码复制
+                        if(p.qr_url && p.qr_url.length > 5) clickAction = `showQR('${p.qr_url}')`;
+                        else clickAction = `copyText('姓名：${p.name}\\n类型：${p.type}\\n账号：${p.account}')`;
+                    }
+                    
+                    return `<div class="p-3 bg-orange-50 border border-orange-100 rounded hover:bg-orange-100 cursor-pointer" onclick="${clickAction}"><p class="text-xs font-bold text-orange-800 mb-1 truncate">${p.name}</p><p class="text-[10px] text-orange-600 font-bold">${info}</p></div>`; 
+                }).join('');
+                
+                document.getElementById('nav-grid').innerHTML = myLinks.map(l=>`<div class="group bg-white p-3 rounded-xl flex flex-col items-center justify-center border hover:border-blue-300 cursor-pointer relative" onclick="window.open('${l.url}','_blank')"><button onclick="event.stopPropagation();removeLink(${l.id});" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[8px] hidden group-hover:flex items-center justify-center">×</button><span class="text-xs font-bold text-blue-600 bg-blue-50 w-8 h-8 flex items-center justify-center rounded-full mb-1">${l.name[0]}</span><span class="text-[10px] text-slate-600 truncate w-full text-center">${l.name}</span></div>`).join('');
+                document.getElementById('entity-list-preview').innerHTML = myEntities.map(e => `<div class="flex justify-between items-center text-xs bg-slate-50 p-2 rounded"><span>${e.name}</span><button onclick="removeEntity(${e.id})" class="text-red-400">删</button></div>`).join('');
+                document.getElementById('personal-list-preview').innerHTML = myPersonals.map(p => { let info = p.type; if(p.type==='bank') info = p.bank; return `<div class="flex justify-between items-center text-xs bg-slate-50 p-2 rounded"><span>${p.name} - ${info}</span><button onclick="removePersonal(${p.id})" class="text-red-400">删</button></div>`; }).join('');
+                document.getElementById('settings-link-list').innerHTML = myLinks.map(l => `<div class="flex justify-between items-center text-xs bg-slate-50 p-2 rounded"><span>${l.name} - ${l.url}</span><button onclick="removeLink(${l.id})" class="text-red-400">删</button></div>`).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        // ✅ 黄金行情: 移除提示语，直接显示扣减后价格
+        async function fetchGoldPrice() { 
+            try { 
+                const res = await authFetch(`${API_BASE}/tools/gold-price`); 
+                const html = (res.data || []).map(m => { 
+                    let rawPrice = parseFloat(m.price); 
+                    let adjust = 0; 
+                    if (m.name.includes('黄金') || m.name.includes('Au') || m.name.includes('100g')) adjust = -7; 
+                    else if (m.name.includes('铂金') || m.name.includes('PT')) adjust = -10; 
+                    else if (m.name.includes('白银')) adjust = -0.15; 
+                    const finalPrice = (rawPrice + adjust).toFixed(2); 
+                    
+                    const val = parseFloat(m.change.replace('%','')); 
+                    const color = val > 0 ? 'text-red-500 font-bold' : (val < 0 ? 'text-green-600 font-bold' : 'text-slate-500'); 
+                    return `<tr class="hover:bg-slate-50 transition"><td>${m.name}</td><td class="${color}">${finalPrice}</td><td class="${color}">${val>0?'↑':(val<0?'↓':'')} ${m.change}</td><td class="text-slate-500">${m.max}</td><td class="text-slate-500">${m.min}</td><td class="text-right pr-6 text-xs text-slate-400 font-mono">${m.time}</td></tr>`; 
+                }).join('') || '<tr><td colspan="6" class="text-center text-slate-400 py-6">暂无数据</td></tr>'; 
+                document.getElementById('table-gold-price').innerHTML = html; 
+            } catch(e) { 
+                document.getElementById('table-gold-price').innerHTML = '<tr><td colspan="6" class="text-center text-red-400 py-6">行情加载失败，请检查网络</td></tr>'; 
+            } 
+        }
 
         // Init
         renderReceipts(); 
