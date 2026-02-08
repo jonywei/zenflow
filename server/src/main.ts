@@ -26,7 +26,7 @@ function getUser(authHeader: string) {
 @Controller('api')
 class AppController {
     
-    // --- 黄金接口 (探数API) ---
+    // ✅ 黄金接口 (探数API - 最终定版)
     @Get('tools/gold-price')
     async getGoldPrice(@Res() res: Response) {
         try {
@@ -47,12 +47,10 @@ class AppController {
             }
 
             const list = result.data.list;
-            // 核心品种
             const targets = ['Au9999', 'Au9995', 'Au100g', 'PT9995'];
             
             const data = targets.map(code => {
                 const item = list[code] || {};
-                // 处理时间字符串
                 let timeStr = '-';
                 if (item.updatetime) {
                     const parts = item.updatetime.split(' ');
@@ -83,27 +81,25 @@ class AppController {
     @Post('auth/register') register(@Body() body) { try { const hash = bcrypt.hashSync(body.password, 10); db.prepare('INSERT INTO users (username, password) VALUES (?, ?)').run(body.username, hash); return { status: 'ok' }; } catch (e) { return { status: 'error', msg: 'User exists' }; } }
     @Post('user/update') updateUser(@Body() body, @Headers('authorization') auth) { const u:any=getUser(auth); if(body.password) db.prepare('UPDATE users SET password=? WHERE id=?').run(bcrypt.hashSync(body.password,10),u.id); db.prepare('UPDATE users SET phone=?, company_name=? WHERE id=?').run(body.phone,body.company_name,u.id); return {status:'ok'}; }
     
-    // CRUD
     @Get('company/list') getCompanies(@Headers('authorization') auth) { return { data: db.prepare('SELECT * FROM companies WHERE user_id=?').all((getUser(auth) as any).id) }; }
     @Post('company/save') saveCompany(@Body() body, @Headers('authorization') auth) { db.prepare('INSERT INTO companies (user_id,name,abbr,tax,address,contact,phone,bank,account) VALUES (?,?,?,?,?,?,?,?,?)').run((getUser(auth) as any).id, body.name, body.abbr, body.tax, body.address, body.contact, body.phone, body.bank, body.account); return { status: 'ok' }; }
     @Post('company/delete') deleteCompany(@Body() body, @Headers('authorization') auth) { db.prepare('DELETE FROM companies WHERE id=? AND user_id=?').run(body.id, (getUser(auth) as any).id); return { status: 'ok' }; }
+    
     @Get('personal/list') getPersonals(@Headers('authorization') auth) { return { data: db.prepare('SELECT * FROM personals WHERE user_id=?').all((getUser(auth) as any).id) }; }
     @Post('personal/save') savePersonal(@Body() body, @Headers('authorization') auth) { db.prepare('INSERT INTO personals (user_id,type,name,bank,account,qr_url) VALUES (?,?,?,?,?,?)').run((getUser(auth) as any).id, body.type, body.name, body.bank, body.account, body.qr_url); return { status: 'ok' }; }
     @Post('personal/delete') deletePersonal(@Body() body, @Headers('authorization') auth) { db.prepare('DELETE FROM personals WHERE id=? AND user_id=?').run(body.id, (getUser(auth) as any).id); return { status: 'ok' }; }
+    
     @Get('link/list') getLinks(@Headers('authorization') auth) { return { data: db.prepare('SELECT * FROM links WHERE user_id=?').all((getUser(auth) as any).id) }; }
     @Post('link/save') saveLink(@Body() body, @Headers('authorization') auth) { db.prepare('INSERT INTO links (user_id,name,url) VALUES (?,?,?)').run((getUser(auth) as any).id, body.name, body.url); return { status: 'ok' }; }
     @Post('link/delete') deleteLink(@Body() body, @Headers('authorization') auth) { db.prepare('DELETE FROM links WHERE id=? AND user_id=?').run(body.id, (getUser(auth) as any).id); return { status: 'ok' }; }
     
-    // Tools
-    @Post('tools/shorten') shorten(@Body() body) { const k=Math.random().toString(36).substr(2,6); db.prepare('INSERT INTO short_links (key,original_url) VALUES (?,?)').run(k,body.url); return {shortUrl: 'http://localhost:' + CONFIG.PORT + '/s/' + k}; }
+    // ✅ 已删除短链接口
     
-    // ✅ 修复后的上传接口 (移除复杂嵌套)
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
             destination: CONFIG.UPLOAD_DIR,
             filename: (req, file, cb) => {
-                // 简单字符串拼接，防止语法错误
                 const name = Date.now() + '-' + file.originalname;
                 cb(null, name);
             }
@@ -122,6 +118,7 @@ async function bootstrap() {
     const adapter = app.getHttpAdapter().getInstance(); 
     adapter.use('/uploads', require('express').static(CONFIG.UPLOAD_DIR)); 
     adapter.use('/', require('express').static(CONFIG.CLIENT_DIR)); 
+    // 保留跳转路由以防万一，但生成接口已删
     adapter.get('/s/:key', (req, res) => { 
         const l:any = db.prepare('SELECT original_url FROM short_links WHERE key=?').get(req.params.key); 
         res.redirect(l ? l.original_url : '/'); 
